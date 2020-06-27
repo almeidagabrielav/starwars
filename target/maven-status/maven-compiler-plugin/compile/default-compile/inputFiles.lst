@@ -1,2 +1,4 @@
-/home/gabriela/Downloads/starwars/src/main/java/com/empresa/starwars/StarwarsApplication.java
-/home/gabriela/Downloads/starwars/src/main/java/com/empresa/starwars/interfaces/PlanetController.java
+/home/gabriela/IdeaProjects/starwars/src/main/java/com/empresa/starwars/service/PlanetService.java
+/home/gabriela/IdeaProjects/starwars/src/main/java/com/empresa/starwars/interfaces/PlanetController.java
+/home/gabriela/IdeaProjects/starwars/src/main/java/com/empresa/starwars/StarwarsApplication.java
+/home/gabriela/IdeaProjects/starwars/src/main/java/com/empresa/starwars/domain/Planet.java
