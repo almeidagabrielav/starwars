@@ -1,5 +1,6 @@
 com/empresa/starwars/service/PlanetService$PlanetServiceBuilder.class
 com/empresa/starwars/domain/Planet$PlanetBuilder.class
+com/empresa/starwars/service/PlanetRepository.class
 com/empresa/starwars/StarwarsApplication.class
 com/empresa/starwars/domain/Planet.class
 com/empresa/starwars/interfaces/PlanetController.class
