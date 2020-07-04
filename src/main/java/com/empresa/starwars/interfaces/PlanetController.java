@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public class PlanetController {
 
         return Optional.ofNullable(planetsDTO)
                 .map(x -> ResponseEntity.ok().body(planetsDTO))
-                .orElse(ResponseEntity.status(400).build());
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
     @GetMapping( value = "/planets", params = "id", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -32,8 +33,8 @@ public class PlanetController {
         PlanetDTO planetDTO  = planetService.findById(id);
 
         return Optional.ofNullable(planetDTO)
-                .map(x -> ResponseEntity.ok().body(planetDTO))
-                .orElse(ResponseEntity.status(400).build());
+                .map(x -> ResponseEntity.status(HttpStatus.CREATED).body(planetDTO))
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
 
@@ -43,16 +44,17 @@ public class PlanetController {
 
         return Optional.ofNullable(planetDTO)
                 .map(x -> ResponseEntity.ok().body(planetDTO))
-                .orElse(ResponseEntity.status(400).build());
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
     @PostMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity savePlanet(@RequestBody PlanetDTO newPlanet){
+    public ResponseEntity<PlanetDTO> savePlanet(@RequestBody @Valid PlanetDTO newPlanet){
         PlanetDTO planetDTO  = planetService.savePlanet(newPlanet);
 
-        return Optional.ofNullable(planetDTO)
-                .map(x -> ResponseEntity.ok().body(planetDTO))
-                .orElse(ResponseEntity.status(400).build());
+        return new ResponseEntity<>(planetDTO, HttpStatus.CREATED);
+//        return Optional.ofNullable(planetDTO)
+//                .map(x -> ResponseEntity.ok().body(planetDTO))
+//                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
     @PutMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
