@@ -2,13 +2,18 @@ package com.empresa.starwars.domain;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Data //Criar Get Set
-@Builder //Padrao de Projeto
+@Data
+@Builder
 
+@Document(collection = "planets")
 public class Planet {
-    private int Id;
-    private String Name;
-    private String Clime;
-    private String Ground;
+
+    @Id
+    private String id;
+    private String name;
+    private String climate;
+    private String terrain;
 }

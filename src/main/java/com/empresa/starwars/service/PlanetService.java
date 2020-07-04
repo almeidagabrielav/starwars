@@ -1,8 +1,11 @@
 package com.empresa.starwars.service;
 
 import com.empresa.starwars.domain.Planet;
+import com.empresa.starwars.domain.PlanetDTO;
+import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,106 +16,100 @@ import java.util.List;
 @Builder
 public class PlanetService {
 
+    //region Propriedades
     private final PlanetRepository planetRepository;
+    //endregion
 
-    public Planet savePlanet(Planet planet){
-        return planetRepository.save(planet);
+    //region Métodos Privados
+
+    private PlanetDTO convertPlanetToPlanetDTO(Planet planet){
+
+        return PlanetDTO.builder()
+                .id(planet.getId())
+                .name(planet.getName())
+                .climate(planet.getClimate())
+                .terrain(planet.getTerrain())
+                .build();
     }
 
-    public List<Planet> findAll(){
-        return planetRepository.findAll();
+    private Planet convertPlanetDTOToPlanet(PlanetDTO planetDTO){
+
+        return Planet.builder()
+                .name(planetDTO.getName())
+                .climate(planetDTO.getClimate())
+                .terrain(planetDTO.getTerrain())
+                .build();
     }
 
-//    private List<Planet> fillGlobalPlanets(){
-//        List<Planet> globalPlanets = new ArrayList<>();
-//        Planet planet = Planet.builder()
-//                .Id(1)
-//                .Name("Coruscant")
-//                .Clime("Tropical")
-//                .Ground("Plano")
-//                .build();
-//
-//        Planet planet1 = Planet.builder()
-//                .Id(2)
-//                .Name("Naboo")
-//                .Clime("Tropical")
-//                .Ground("Plano")
-//                .build();
-//
-//        Planet planet2 = Planet.builder()
-//                .Id(3)
-//                .Name("Estrela da Morte")
-//                .Clime("Tropical")
-//                .Ground("Plano")
-//                .build();
-//
-//        globalPlanets.add(planet);
-//        globalPlanets.add(planet1);
-//        globalPlanets.add(planet2);
-//
-//        return globalPlanets;
-//    }
-//
-//    public List<Planet> getAll(){
-//        return fillGlobalPlanets();
-//    }
-//
-//    public Planet getById(int id){
-//
-//        for (Planet planet: fillGlobalPlanets()){
-//            if(planet.getId() == id)
-//                return planet;
-//        }
-//
-//        return null;
-//    }
-//
-//    public Planet getByName(String name){
-//
-//        for (Planet planet: fillGlobalPlanets()){
-//            if(planet.getName().equals(name))
-//                return planet;
-//        }
-//
-//        return null;
-//    }
-//
-//    public List<Planet> createPlanet(Planet newPlanet){
-//        List<Planet> planets = fillGlobalPlanets();
-//        Planet planet = Planet.builder()
-//                .Id(10)
-//                .Name(newPlanet.getName())
-//                .Clime(newPlanet.getClime())
-//                .Ground(newPlanet.getGround())
-//                .build();
-//
-//        planets.add(planet);
-//        return planets;
-//    }
-//
-//    public List<Planet> updatePlanet(int id, Planet planetDetails){
-//        List<Planet> planets = fillGlobalPlanets();
-//
-//        for(Planet planet: planets){
-//            if(planet.getId() == id){
-//                planet.setName(planetDetails.getName());
-//                planet.setClime(planetDetails.getClime());
-//                planet.setGround(planetDetails.getGround());
-//            }
-//        }
-//
-//        return planets;
-//    }
-//
-//    public List<Planet> deletePlanet(int id){
-//        List<Planet> planets = fillGlobalPlanets();
-//
-//        for(Planet planet: planets){
-//            if(planet.getId() == id){
-//                planets.remove(planet);
-//            }
-//        }
-//
-//        return planets;
-//    }
+    //endregion
+
+    //region Métodos API
+    public PlanetDTO savePlanet(PlanetDTO planetDTO){
+        try{
+            Planet planet = convertPlanetDTOToPlanet(planetDTO);
+            planetRepository.save(planet);
+            planetDTO = convertPlanetToPlanetDTO(planet);
+            return planetDTO;
+        }
+        catch (Exception ex){
+            return null;
+        }
+    }
+
+    public List<PlanetDTO> findAll(){
+        try {
+            List<PlanetDTO> planetsDTO = new ArrayList<>();
+            for(Planet planet: planetRepository.findAll()){
+                PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
+                planetsDTO.add(planetDTO);
+            }
+            return planetsDTO;
+        }
+        catch (Exception ex){
+            return null;
+        }
+    }
+
+    public PlanetDTO findById(String id){
+        try{
+            Planet planet = planetRepository.findById(id).get();
+            return convertPlanetToPlanetDTO(planet);
+        }
+        catch (Exception ex){
+            return null;
+        }
+    }
+
+    public PlanetDTO findByName(String name){
+        try{
+            Planet planet = planetRepository.findByName(name);
+            return convertPlanetToPlanetDTO(planet);
+        }
+        catch (Exception ex){
+            return null;
+        }
+    }
+
+    public void updatePlanet(String id, PlanetDTO planetDTO){
+        try{
+            Planet planet = convertPlanetDTOToPlanet(planetDTO);
+            planet.setId(id);
+            planetRepository.save(planet);
+        }
+        catch (Exception ex){
+        }
+    }
+
+    public void deletePlanet(String id){
+        try{
+            planetRepository.deleteById(id);
+        }
+        catch (Exception ex){
+
+        }
+    }
+    //endregion
+
+
+
 }

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: starwarsapi
+  data:
+    mongodb:
+      uri: mongodb://mongo/planets

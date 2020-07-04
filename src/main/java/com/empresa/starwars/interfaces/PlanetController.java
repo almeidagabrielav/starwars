@@ -1,6 +1,7 @@
 package com.empresa.starwars.interfaces;
 
 import com.empresa.starwars.domain.Planet;
+import com.empresa.starwars.domain.PlanetDTO;
 import com.empresa.starwars.service.PlanetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,78 +16,52 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PlanetController {
 
-    //Regra injeção dependencia, procurar. Colocar final ou @Authorid
     private final PlanetService planetService;
 
     @GetMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getAll(){
-        List<Planet> planets  = planetService.findAll();
+    public ResponseEntity findAll(){
+        List<PlanetDTO> planetsDTO  = planetService.findAll();
 
-        return Optional.ofNullable(planets)
-                .map(x -> ResponseEntity.ok().body(planets))
-                .orElse(ResponseEntity.status(418).build());
+        return Optional.ofNullable(planetsDTO)
+                .map(x -> ResponseEntity.ok().body(planetsDTO))
+                .orElse(ResponseEntity.status(400).build());
+    }
+
+    @GetMapping( value = "/planets", params = "id", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getById(@RequestParam String id){
+        PlanetDTO planetDTO  = planetService.findById(id);
+
+        return Optional.ofNullable(planetDTO)
+                .map(x -> ResponseEntity.ok().body(planetDTO))
+                .orElse(ResponseEntity.status(400).build());
+    }
+
+
+    @GetMapping( value = "/planets", params="name", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getByName(@RequestParam String name){
+        PlanetDTO planetDTO  = planetService.findByName(name);
+
+        return Optional.ofNullable(planetDTO)
+                .map(x -> ResponseEntity.ok().body(planetDTO))
+                .orElse(ResponseEntity.status(400).build());
     }
 
     @PostMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity createPlanet(@RequestBody Planet newPlanet){
-        Planet planet  = planetService.savePlanet(newPlanet);
+    public ResponseEntity savePlanet(@RequestBody PlanetDTO newPlanet){
+        PlanetDTO planetDTO  = planetService.savePlanet(newPlanet);
 
-        return Optional.ofNullable(planet)
-                .map(x -> ResponseEntity.ok().body(planet))
-                .orElse(ResponseEntity.status(418).build());
+        return Optional.ofNullable(planetDTO)
+                .map(x -> ResponseEntity.ok().body(planetDTO))
+                .orElse(ResponseEntity.status(400).build());
     }
 
-//    @GetMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity getAll(){
-//        List<Planet> planets  = planetService.getAll();
-//
-//        return Optional.ofNullable(planets)
-//                .map(x -> ResponseEntity.ok().body(planets))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
-//
-//    @PostMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity createPlanet(@RequestBody Planet newPlanet){
-//        List<Planet> planets  = planetService.createPlanet(newPlanet);
-//
-//        return Optional.ofNullable(planets)
-//                .map(x -> ResponseEntity.ok().body(planets))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
-//
-//    @PutMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity updatePlanet(@PathVariable(value = "id") int id, @RequestBody Planet planetDetails){
-//        List<Planet> planets  = planetService.updatePlanet(id,planetDetails);
-//
-//        return Optional.ofNullable(planets)
-//                .map(x -> ResponseEntity.ok().body(planets))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
-//
-//    @DeleteMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity deletePlanet(@PathVariable(value = "id") int id){
-//
-//        return Optional.ofNullable(id)
-//                .map(x -> ResponseEntity.ok().body(id))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
-//
-//    @GetMapping( value = "/planets", params = "id", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity getById(@RequestParam int id){
-//        Planet planet  = planetService.getById(id);
-//
-//        return Optional.ofNullable(planet)
-//                .map(x -> ResponseEntity.ok().body(planet))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
-//
-//
-//    @GetMapping( value = "/planets", params="name", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity getByName(@RequestParam String name){
-//        Planet planet  = planetService.getByName(name);
-//
-//        return Optional.ofNullable(planet)
-//                .map(x -> ResponseEntity.ok().body(planet))
-//                .orElse(ResponseEntity.status(418).build());
-//    }
+    @PutMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void updatePlanet(@PathVariable(value = "id") String id, @RequestBody PlanetDTO planetDTO){
+        planetService.updatePlanet(id, planetDTO);
+    }
+
+    @DeleteMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public void deletePlanet(@PathVariable(value = "id") String id){
+        planetService.deletePlanet(id);
+    }
 }
