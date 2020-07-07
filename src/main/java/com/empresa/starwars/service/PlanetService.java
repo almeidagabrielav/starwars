@@ -1,11 +1,13 @@
 package com.empresa.starwars.service;
 
+import com.empresa.starwars.clients.StarWarsClient;
 import com.empresa.starwars.domain.Planet;
 import com.empresa.starwars.domain.PlanetDTO;
+import com.empresa.starwars.domain.SwapiResponse;
 import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ public class PlanetService {
 
     //region Propriedades
     private final PlanetRepository planetRepository;
+    @Autowired
+    private final StarWarsClient starWarsClient;
     //endregion
 
     //region Métodos Privados
@@ -43,7 +47,7 @@ public class PlanetService {
 
     //endregion
 
-    //region Métodos API
+    //region Métodos Públicos
     public PlanetDTO savePlanet(PlanetDTO planetDTO){
         try{
             Planet planet = convertPlanetDTOToPlanet(planetDTO);
@@ -61,6 +65,15 @@ public class PlanetService {
             List<PlanetDTO> planetsDTO = new ArrayList<>();
             for(Planet planet: planetRepository.findAll()){
                 PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
+                SwapiResponse response = starWarsClient.getPlanets(planet.getName());
+
+                if(response.getCount() > 1){
+                    throw new Exception("Não foi possível obter a quantidade de aparições em filmes pois o método retornou mais de um resultado na busca por nome.");
+                }
+                else {
+                    planetDTO.setCount_films_appearances(response.getResults().get(0).getFilms().size());
+                }
+
                 planetsDTO.add(planetDTO);
             }
             return planetsDTO;

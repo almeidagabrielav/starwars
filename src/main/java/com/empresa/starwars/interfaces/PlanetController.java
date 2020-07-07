@@ -28,8 +28,8 @@ public class PlanetController {
                 .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
-    @GetMapping( value = "/planets", params = "id", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getById(@RequestParam String id){
+    @GetMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getById(@PathVariable(value = "id") String id ){
         PlanetDTO planetDTO  = planetService.findById(id);
 
         return Optional.ofNullable(planetDTO)
@@ -51,10 +51,9 @@ public class PlanetController {
     public ResponseEntity<PlanetDTO> savePlanet(@RequestBody @Valid PlanetDTO newPlanet){
         PlanetDTO planetDTO  = planetService.savePlanet(newPlanet);
 
-        return new ResponseEntity<>(planetDTO, HttpStatus.CREATED);
-//        return Optional.ofNullable(planetDTO)
-//                .map(x -> ResponseEntity.ok().body(planetDTO))
-//                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        return Optional.ofNullable(planetDTO)
+                .map(x -> ResponseEntity.ok().body(planetDTO))
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
     @PutMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
