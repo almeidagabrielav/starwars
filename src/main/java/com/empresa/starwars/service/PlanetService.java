@@ -8,6 +8,7 @@ import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class PlanetService {
 
     public List<PlanetDTO> findAll(){
         try {
-            List<PlanetDTO> planetsDTO = new ArrayList<>();
+            List<PlanetDTO> planetsDTO = new ArrayList<PlanetDTO>();
             for(Planet planet: planetRepository.findAll()){
                 PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
                 SwapiResponse response = starWarsClient.getPlanets(planet.getName());
