@@ -5,25 +5,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.beans.ConstructorProperties;
 
 public class ApiError {
+
+    //region Properties
     @JsonProperty("code")
     protected String code;
 
     @JsonProperty("message")
     protected String message;
+    //endregion
 
+    //region Constructors
     public ApiError(GenericApiException ex) {
         this.code = ex.getCode();
         this.message = ex.getMessage();
     }
 
-    public static ApiError.ApiErrorBuilder builder() {
-        return new ApiError.ApiErrorBuilder();
+    @ConstructorProperties({"code", "reason", "message"})
+    public ApiError(String code, String reason, String message) {
+        this.code = code;
+        this.message = message;
     }
 
+    public ApiError() {
+    }
+    //endregion
+
+    //region Getters and Setters
     public String getCode() {
         return this.code;
     }
-
 
     public String getMessage() {
         return this.message;
@@ -33,11 +43,24 @@ public class ApiError {
         this.code = code;
     }
 
-
     public void setMessage(String message) {
         this.message = message;
     }
+    //endregion
 
+    //region Builder
+    public static ApiErrorBuilder builder() {
+        return new ApiErrorBuilder();
+    }
+    //endregion
+
+    //region Protected Methods
+    protected boolean canEqual(Object other) {
+        return other instanceof ApiError;
+    }
+    //endregion
+
+    //region Public Methods
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -62,8 +85,6 @@ public class ApiError {
                     return false;
                 }
 
-
-
                 Object this$message = this.getMessage();
                 Object other$message = other.getMessage();
                 if (this$message == null) {
@@ -79,52 +100,9 @@ public class ApiError {
         }
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof ApiError;
-    }
-
     public String toString() {
         return "ApiError(code=" + this.getCode() + ", message=" + this.getMessage() + ")";
     }
+    //endregion
 
-    @ConstructorProperties({"code", "reason", "message"})
-    public ApiError(String code, String reason, String message) {
-        this.code = code;
-        this.message = message;
-    }
-
-    public ApiError() {
-    }
-
-    public static class ApiErrorBuilder {
-        private String code;
-        private String reason;
-        private String message;
-
-        ApiErrorBuilder() {
-        }
-
-        public ApiError.ApiErrorBuilder code(String code) {
-            this.code = code;
-            return this;
-        }
-
-        public ApiError.ApiErrorBuilder reason(String reason) {
-            this.reason = reason;
-            return this;
-        }
-
-        public ApiError.ApiErrorBuilder message(String message) {
-            this.message = message;
-            return this;
-        }
-
-        public ApiError build() {
-            return new ApiError(this.code, this.reason, this.message);
-        }
-
-        public String toString() {
-            return "ApiError.ApiErrorBuilder(code=" + this.code + ", reason=" + this.reason + ", message=" + this.message + ")";
-        }
-    }
 }

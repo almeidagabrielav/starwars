@@ -18,10 +18,14 @@ import java.time.Duration;
 @Data
 @ConfigurationProperties(prefix = "cache")
 public class CacheConfiguration {
+
+    //region Properties
     private int timeoutSeconds;
     private int redisPort;
     private String redisHost;
+    //endregion
 
+    //region Configuration
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
@@ -49,4 +53,5 @@ public class CacheConfiguration {
                 .cacheDefaults(redisCacheConfiguration)
                 .build();
     }
+    //endregion
 }

@@ -10,5 +10,7 @@ import java.util.ArrayList;
 @Builder
 public class PlanetSwapiResponse implements Serializable {
     private String name;
+    private String terrain;
+    private String climate;
     private ArrayList<String> films;
 }

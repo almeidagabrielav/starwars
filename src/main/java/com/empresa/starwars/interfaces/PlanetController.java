@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,32 +20,11 @@ import java.util.Optional;
 @Slf4j
 public class PlanetController {
 
+    //region Property
     private final PlanetService planetService;
+    //endregion
 
-    private void isValid(PlanetDTO planetDTO){
-        if(planetDTO.getName() == null || planetDTO.getName().isEmpty()){
-            throw GenericApiException.builder()
-                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
-                    .statusCode(HttpStatus.BAD_REQUEST)
-                    .message("Property name is required")
-                    .build();
-        }
-        if(planetDTO.getClimate() == null || planetDTO.getClimate().isEmpty()){
-            throw GenericApiException.builder()
-                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
-                    .statusCode(HttpStatus.BAD_REQUEST)
-                    .message("Property climate is required")
-                    .build();
-        }
-        if(planetDTO.getTerrain() == null || planetDTO.getTerrain().isEmpty()){
-            throw GenericApiException.builder()
-                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
-                    .statusCode(HttpStatus.BAD_REQUEST)
-                    .message("Property terrain is required")
-                    .build();
-        }
-    }
-
+    //region Public Methods
     @GetMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity findAll(){
         try{
@@ -54,7 +35,7 @@ public class PlanetController {
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         }
         catch (GenericApiException ex){
-            log.error("Error when get planets ", ex);
+            log.error("Error getting planets ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
 
@@ -62,28 +43,40 @@ public class PlanetController {
 
     @GetMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getById(@PathVariable(value = "id") String id ){
-        PlanetDTO planetDTO  = planetService.findById(id);
+        try{
+            PlanetDTO planetDTO  = planetService.findById(id);
 
-        return Optional.ofNullable(planetDTO)
-                .map(x -> ResponseEntity.status(HttpStatus.CREATED).body(planetDTO))
-                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+            return Optional.ofNullable(planetDTO)
+                    .map(x -> ResponseEntity.ok().body(planetDTO))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+        catch (GenericApiException ex){
+            log.error("Error getting planets by id ", ex);
+            return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
     }
 
 
     @GetMapping( value = "/planets", params="name", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getByName(@RequestParam String name){
-        PlanetDTO planetDTO  = planetService.findByName(name);
+        try{
+            PlanetDTO planetDTO  = planetService.findByName(name);
 
-        return Optional.ofNullable(planetDTO)
-                .map(x -> ResponseEntity.ok().body(planetDTO))
-                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+            return Optional.ofNullable(planetDTO)
+                    .map(x -> ResponseEntity.ok().body(planetDTO))
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+        catch (GenericApiException ex){
+            log.error("Error getting planets by name ", ex);
+            return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
+
     }
 
     @PostMapping( value = "/planets", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity savePlanet(@RequestBody PlanetDTO newPlanet){
 
         try{
-            isValid(newPlanet);
             PlanetDTO planetDTO = planetService.savePlanet(newPlanet);
 
             return Optional.ofNullable(planetDTO)
@@ -91,19 +84,37 @@ public class PlanetController {
                     .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         }
         catch (GenericApiException ex){
-            log.error("Error when save planet ", ex);
+            log.error("Error saving planet ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
 
     }
 
     @PutMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public void updatePlanet(@PathVariable(value = "id") String id, @RequestBody PlanetDTO planetDTO){
-        planetService.updatePlanet(id, planetDTO);
+    public ResponseEntity updatePlanet(@PathVariable(value = "id") String id, @RequestBody PlanetDTO updatedPlanet){
+        try{
+            PlanetDTO planetDTO = planetService.updatePlanet(id, updatedPlanet);
+
+            return Optional.ofNullable(planetDTO)
+                    .map(x -> ResponseEntity.ok().build())
+                    .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+        }
+        catch (GenericApiException ex){
+            log.error("Error updating planet ", ex);
+            return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
     }
 
     @DeleteMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public void deletePlanet(@PathVariable(value = "id") String id){
-        planetService.deletePlanet(id);
+    public ResponseEntity deletePlanet(@PathVariable(value = "id") String id){
+        try{
+            planetService.deletePlanet(id);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        catch (GenericApiException ex){
+            log.error("Error deleting planet ", ex);
+            return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
     }
+    //endregion
 }

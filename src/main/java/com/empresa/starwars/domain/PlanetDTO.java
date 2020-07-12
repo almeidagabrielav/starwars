@@ -11,6 +11,6 @@ public class PlanetDTO {
     private String name;
     private String climate;
     private String terrain;
-    private Integer count_films_appearances;
+    private Integer countFilmsAppearances;
 
 }
