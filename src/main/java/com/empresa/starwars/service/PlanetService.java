@@ -1,14 +1,15 @@
 package com.empresa.starwars.service;
 
 import com.empresa.starwars.clients.StarWarsClient;
+import com.empresa.starwars.configuration.exceptions.GenericApiException;
 import com.empresa.starwars.domain.Planet;
 import com.empresa.starwars.domain.PlanetDTO;
+import com.empresa.starwars.domain.PlanetSwapiResponse;
 import com.empresa.starwars.domain.SwapiResponse;
 import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,8 +22,7 @@ public class PlanetService {
 
     //region Propriedades
     private final PlanetRepository planetRepository;
-    @Autowired
-    private final StarWarsClient starWarsClient;
+    private final SwapiService swapiService;
     //endregion
 
     //region Métodos Privados
@@ -64,12 +64,16 @@ public class PlanetService {
     public List<PlanetDTO> findAll(){
         try {
             List<PlanetDTO> planetsDTO = new ArrayList<PlanetDTO>();
-            for(Planet planet: planetRepository.findAll()){
+            List<Planet> planets = planetRepository.findAll();
+            for(Planet planet: planets){
                 PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
-                SwapiResponse response = starWarsClient.getPlanets(planet.getName());
-
-                if(response.getCount() > 1){
-                    throw new Exception("Não foi possível obter a quantidade de aparições em filmes pois o método retornou mais de um resultado na busca por nome.");
+                SwapiResponse response = swapiService.getPlanets(planet.getName());
+                if(true){
+                    throw GenericApiException.builder()
+                            .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
+                            .statusCode(HttpStatus.BAD_REQUEST)
+                            .message("Não foi possível obter a quantidade de aparições em filmes pois o método retornou mais de um resultado na busca por nome.")
+                            .build();
                 }
                 else {
                     planetDTO.setCount_films_appearances(response.getResults().get(0).getFilms().size());
@@ -79,15 +83,31 @@ public class PlanetService {
             }
             return planetsDTO;
         }
+        catch (GenericApiException ex){
+            throw ex;
+        }
         catch (Exception ex){
-            return null;
+            throw GenericApiException.builder()
+                    .code(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Error when find planets")
+                    .build();
         }
     }
 
     public PlanetDTO findById(String id){
         try{
             Planet planet = planetRepository.findById(id).get();
-            return convertPlanetToPlanetDTO(planet);
+            SwapiResponse response = swapiService.getPlanets(planet.getName());
+            PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
+
+            if(response.getCount() > 1){
+                throw new Exception("Não foi possível obter a quantidade de aparições em filmes pois o método retornou mais de um resultado na busca por nome.");
+            }
+            else {
+                planetDTO.setCount_films_appearances(response.getResults().get(0).getFilms().size());
+            }
+           return planetDTO;
         }
         catch (Exception ex){
             return null;
@@ -97,7 +117,17 @@ public class PlanetService {
     public PlanetDTO findByName(String name){
         try{
             Planet planet = planetRepository.findByName(name);
-            return convertPlanetToPlanetDTO(planet);
+            SwapiResponse response = swapiService.getPlanets(planet.getName());
+            PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
+
+            if(response.getCount() > 1){
+                throw new Exception("Não foi possível obter a quantidade de aparições em filmes pois o método retornou mais de um resultado na busca por nome.");
+            }
+            else {
+                planetDTO.setCount_films_appearances(response.getResults().get(0).getFilms().size());
+            }
+
+            return planetDTO;
         }
         catch (Exception ex){
             return null;

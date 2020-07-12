@@ -11,10 +11,15 @@ services:
     ports:
       - 6379:6379
 
+  zipkin-server:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+
   api:
     image: starwarsapi
     ports:
-      - 8080:8080
+      - 8085:8080
     depends_on:
       - mongo
       - redis
