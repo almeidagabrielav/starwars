@@ -6,6 +6,7 @@ import com.empresa.starwars.domain.PlanetDTO;
 import com.empresa.starwars.service.PlanetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,6 @@ public class PlanetController {
     public ResponseEntity findAll(){
         try{
             List<PlanetDTO> planetsDTO  = planetService.findAll();
-
             return Optional.ofNullable(planetsDTO)
                     .map(x -> ResponseEntity.ok().body(planetsDTO))
                     .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -77,8 +77,8 @@ public class PlanetController {
     public ResponseEntity savePlanet(@RequestBody PlanetDTO newPlanet){
 
         try{
+            isValid(newPlanet);
             PlanetDTO planetDTO = planetService.savePlanet(newPlanet);
-
             return Optional.ofNullable(planetDTO)
                     .map(x -> ResponseEntity.status(HttpStatus.CREATED).build())
                     .orElse(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
@@ -116,5 +116,50 @@ public class PlanetController {
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
     }
+
+//    @GetMapping(value = "/deleteCache")
+//    @CacheEvict(value = "book", allEntries = true)
+//    public void deleteCache() {
+//        this.service.deleteAllCache();
+//    }
+    //endregion
+
+    //region Private Methods
+
+    public void isValid(PlanetDTO planetDTO){
+        List<String> fields = new ArrayList<String>();
+
+        if(planetDTO.getName() == null || planetDTO.getName().isEmpty()){
+            fields.add("name");
+        }
+        if(planetDTO.getClimate() == null || planetDTO.getClimate().isEmpty()){
+            fields.add("climate");
+        }
+        if(planetDTO.getTerrain() == null || planetDTO.getTerrain().isEmpty()){
+            fields.add("terrain");
+        }
+
+        if(!fields.isEmpty() || fields.size() > 0){
+            String message = "";
+            if(fields.size() == 1){
+                message = "Property " + fields.get(0) + " is required.";
+            }
+            else {
+                String fieldsValues = "";
+                for(String s : fields){
+                    fieldsValues += s + ", ";
+                }
+                fieldsValues = fieldsValues.substring(0, fieldsValues.length() - 2);
+                message = "Properties " + fieldsValues + " are required.";
+            }
+
+            throw GenericApiException.builder()
+                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
+                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .message(message)
+                    .build();
+        }
+    }
+
     //endregion
 }
