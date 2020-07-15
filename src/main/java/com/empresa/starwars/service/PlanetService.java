@@ -1,10 +1,8 @@
 package com.empresa.starwars.service;
 
-import com.empresa.starwars.clients.StarWarsClient;
 import com.empresa.starwars.configuration.exceptions.GenericApiException;
 import com.empresa.starwars.domain.Planet;
 import com.empresa.starwars.domain.PlanetDTO;
-import com.empresa.starwars.domain.PlanetSwapiResponse;
 import com.empresa.starwars.domain.SwapiResponse;
 import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
@@ -14,6 +12,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 
 import java.util.ArrayList;
 import java.util.List;

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class SwapiService {
     private final StarWarsClient starWarsClient;
 
-    //@Cacheable(cacheNames = "planet", key = "#planet")
     @Cacheable(value = "planet", key = "#planet", unless = "#result == null")
     public SwapiResponse getPlanets(String planet){
         return starWarsClient.getPlanets(planet);

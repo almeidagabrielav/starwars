@@ -5,10 +5,16 @@ import com.empresa.starwars.domain.Planet;
 import com.empresa.starwars.domain.PlanetDTO;
 import com.empresa.starwars.domain.PlanetSwapiResponse;
 import com.empresa.starwars.domain.SwapiResponse;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
+@RequiredArgsConstructor
+@Builder
+@Configuration
 public class Validation {
 
     //region Public Methods
@@ -21,7 +27,7 @@ public class Validation {
                     .build();
         }
 
-        checkResponseSize(response.getResults().size());
+        checkResponseSize(response.getCount());
 
         if(response.getResults().get(0).getName().equals(planetDTO.getName())) {
             PlanetSwapiResponse planetSwapiResponse =  response.getResults().get(0);
@@ -55,7 +61,7 @@ public class Validation {
                     .message("There is no planet with that name.")
                     .build();
         }
-        else if(isPost)
+        else if(planet != null && isPost)
         {
             throw GenericApiException.builder()
                     .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
@@ -73,19 +79,20 @@ public class Validation {
                     .message("There is no planet with that name.")
                     .build();
         }
-        if(response.getResults().size() > 1){
-            throw GenericApiException.builder()
-                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
-                    .statusCode(HttpStatus.BAD_REQUEST)
-                    .message("It was not possible to obtain the number of appearances in films because the method returned more than one result in the name search.")
-                    .build();
-        }
+        checkResponseSize(response.getCount());
     }
     //endregion
 
     //region Private Methods
 
     private void checkResponseSize(int size){
+        if(size == 0){
+            throw GenericApiException.builder()
+                    .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
+                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .message("There is no planet with the data reported.")
+                    .build();
+        }
         if(size > 1){
             throw GenericApiException.builder()
                     .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))

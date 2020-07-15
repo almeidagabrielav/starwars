@@ -6,7 +6,6 @@ import com.empresa.starwars.domain.PlanetDTO;
 import com.empresa.starwars.service.PlanetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +41,7 @@ public class PlanetController {
     }
 
     @GetMapping( value = "/planets/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getById(@PathVariable(value = "id") String id ){
+    public ResponseEntity findById(@PathVariable(value = "id") String id ){
         try{
             PlanetDTO planetDTO  = planetService.findById(id);
 
@@ -56,9 +55,8 @@ public class PlanetController {
         }
     }
 
-
     @GetMapping( value = "/planets", params="name", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity getByName(@RequestParam String name){
+    public ResponseEntity findByName(@RequestParam String name){
         try{
             PlanetDTO planetDTO  = planetService.findByName(name);
 
@@ -77,7 +75,7 @@ public class PlanetController {
     public ResponseEntity savePlanet(@RequestBody PlanetDTO newPlanet){
 
         try{
-            isValid(newPlanet);
+            checkPostValidation(newPlanet);
             PlanetDTO planetDTO = planetService.savePlanet(newPlanet);
             return Optional.ofNullable(planetDTO)
                     .map(x -> ResponseEntity.status(HttpStatus.CREATED).build())
@@ -116,17 +114,11 @@ public class PlanetController {
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
     }
-
-//    @GetMapping(value = "/deleteCache")
-//    @CacheEvict(value = "book", allEntries = true)
-//    public void deleteCache() {
-//        this.service.deleteAllCache();
-//    }
     //endregion
 
     //region Private Methods
 
-    public void isValid(PlanetDTO planetDTO){
+    private List<String> checkInvalidFields(PlanetDTO planetDTO){
         List<String> fields = new ArrayList<String>();
 
         if(planetDTO.getName() == null || planetDTO.getName().isEmpty()){
@@ -138,6 +130,12 @@ public class PlanetController {
         if(planetDTO.getTerrain() == null || planetDTO.getTerrain().isEmpty()){
             fields.add("terrain");
         }
+
+        return fields;
+    }
+
+    private void checkPostValidation(PlanetDTO planetDTO){
+        List<String> fields = checkInvalidFields(planetDTO);
 
         if(!fields.isEmpty() || fields.size() > 0){
             String message = "";

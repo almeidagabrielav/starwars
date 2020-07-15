@@ -54,12 +54,6 @@ public class ApiError {
     }
     //endregion
 
-    //region Protected Methods
-    protected boolean canEqual(Object other) {
-        return other instanceof ApiError;
-    }
-    //endregion
-
     //region Public Methods
     public boolean equals(Object o) {
         if (o == this) {
@@ -102,6 +96,12 @@ public class ApiError {
 
     public String toString() {
         return "ApiError(code=" + this.getCode() + ", message=" + this.getMessage() + ")";
+    }
+    //endregion
+
+    //region Protected Methods
+    protected boolean canEqual(Object other) {
+        return other instanceof ApiError;
     }
     //endregion
 
