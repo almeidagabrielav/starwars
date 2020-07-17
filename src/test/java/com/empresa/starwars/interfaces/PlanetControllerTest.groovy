@@ -1,8 +1,9 @@
-package com.empresa.starwars.service
+package com.empresa.starwars.interfaces
 
 import com.empresa.starwars.domain.PlanetRequest
 import com.empresa.starwars.domain.PlanetResponse
 import com.empresa.starwars.interfaces.PlanetController
+import com.empresa.starwars.service.PlanetService
 import com.empresa.starwars.util.IntegrationTestUtil
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,12 +17,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup
 
 
-class PlanetTest extends Specification {
+class PlanetControllerTest extends Specification {
 
+    //region Properties
     PlanetService planetService = Mock()
     def planetController = new PlanetController(planetService)
     def mockMvc = standaloneSetup(planetController).build()
+    //endregion
 
+    //region Public Methods Tests
     @Unroll
     def "GET - [/planets]"(){
         given:
@@ -170,7 +174,9 @@ class PlanetTest extends Specification {
         status              | deletePlanet
         HttpStatus.OK       | null
     }
+    //endregion
 
+    //region Exceptions Test
 //    @Unroll
 //    def "GET - [/planets] - Exception"(){
 //        when:
@@ -182,4 +188,5 @@ class PlanetTest extends Specification {
 //            response.status == HttpStatus.INTERNAL_SERVER_ERROR
 //            thrown Exception
 //    }
+    //endregion
 }
