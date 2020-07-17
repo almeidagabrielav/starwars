@@ -107,7 +107,7 @@ public class PlanetController {
     public ResponseEntity deletePlanet(@PathVariable(value = "id") String id){
         try{
             planetService.deletePlanet(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            return ResponseEntity.ok().build();
         }
         catch (GenericApiException ex){
             log.error("Error deleting planet ", ex);

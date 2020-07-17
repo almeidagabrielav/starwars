@@ -1,12 +1,18 @@
 package com.empresa.starwars.service
 
+import com.empresa.starwars.domain.PlanetRequest
 import com.empresa.starwars.domain.PlanetResponse
 import com.empresa.starwars.interfaces.PlanetController
+import com.empresa.starwars.util.IntegrationTestUtil
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup
 
 
@@ -18,46 +24,51 @@ class PlanetTest extends Specification {
 
     @Unroll
     def "GET - [/planets]"(){
-      given:
+        given:
         planetService.findAll() >> findAllMock
-      when:
+
+        when:
         def response = mockMvc.perform(get("/planets")
-              .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
         ).andReturn().response
 
-      then:
+        then:
         response.status == status.value()
 
-      where:
+        where:
         status                           | findAllMock
         HttpStatus.NOT_FOUND             | null
         HttpStatus.OK                    | new ArrayList<PlanetResponse>(Arrays.asList(Mock(PlanetResponse)))
 
     }
 
+    @Unroll
     def "GET - [/planets/id]"(){
         given:
-            planetService.findById("5106106106") >> findByIdMock
+        planetService.findById(_ as String) >> findByIdMock
+
         when:
-            def response = mockMvc.perform(get("/planets/5106106106")
-                   .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-            ).andReturn().response
+        def response = mockMvc.perform(get("/planets/" + _ as String)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        ).andReturn().response
 
         then:
-            response.status == status.value()
+        response.status == status.value()
 
         where:
-            status                           | findByIdMock
-            HttpStatus.NOT_FOUND             | null
-            HttpStatus.OK                    | Mock(PlanetResponse)
+        status                           | findByIdMock
+        HttpStatus.NOT_FOUND             | null
+        HttpStatus.OK                    | Mock(PlanetResponse)
 
     }
 
+    @Unroll
     def "GET - [/planets/name]"(){
         given:
-        planetService.findByName("name") >> findByNameMock
+        planetService.findByName( _ as String) >> findByNameMock
+
         when:
-        def response = mockMvc.perform(get("/planets?name=name")
+        def response = mockMvc.perform(get("/planets?name=" + _ as String)
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
         ).andReturn().response
 
@@ -71,14 +82,22 @@ class PlanetTest extends Specification {
 
     }
 
+    @Unroll
     def "POST - [/planets]"(){
+        given:
+        planetService.savePlanet(Mock(PlanetRequest)) >> savePlanet
+
+        def planetRequest = PlanetRequest.builder()
+                .name(name)
+                .climate(climate)
+                .terrain(terrain)
+                .build()
+
+        planetService.savePlanet(_ as PlanetRequest) >> savePlanet
+
         when:
-        def response = mockMvc.perform(post("/planets",
-                {
-                            name        : nameVal
-                            climate     : climateVal
-                            terrain     : terrainVal
-                         })
+        def response = mockMvc.perform(post("/planets")
+                .content(IntegrationTestUtil.convertToJson(planetRequest))
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
         ).andReturn().response
 
@@ -87,13 +106,69 @@ class PlanetTest extends Specification {
         response.status == status.value()
 
         where:
-        status                              |    nameVal     |      climateVal      |       terrainVal
-        HttpStatus.BAD_REQUEST              |     null       |          null        |           null
-        HttpStatus.BAD_REQUEST              |     ""         |          ""          |           ""
-        HttpStatus.BAD_REQUEST              |     null       |       "climate"      |         "terrain"
-        HttpStatus.BAD_REQUEST              |    "name"      |          null        |         "terrain"
-        HttpStatus.BAD_REQUEST              |    "name"      |       "climate"      |           null
-        HttpStatus.CREATED                  |    "name"      |       "climate"      |         "terrain"
+        status                 | name   | climate   | terrain   | savePlanet
+        HttpStatus.BAD_REQUEST | null   | null      | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | ""     | ""        | ""        | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | null   | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | null      | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | "climate" | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | ""     | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | ""        | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | "climate" | ""        | Mock(PlanetResponse)
+        HttpStatus.CREATED     | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+    }
+
+    @Unroll
+    def "PUT - [/planets/id]"(){
+        given:
+        planetService.updatePlanet(_ as String, Mock(PlanetRequest)) >> updatePlanet
+
+        def planetRequest = PlanetRequest.builder()
+                .name(name)
+                .climate(climate)
+                .terrain(terrain)
+                .build()
+
+        planetService.updatePlanet(_ as String, _ as PlanetRequest) >> updatePlanet
+
+        when:
+        def response = mockMvc.perform(put("/planets/" + _ as String)
+                .content(IntegrationTestUtil.convertToJson(planetRequest))
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        ).andReturn().response
+
+
+        then:
+        response.status == status.value()
+
+        where:
+        status                 | name   | climate   | terrain   | updatePlanet
+        HttpStatus.BAD_REQUEST | null   | null      | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | ""     | ""        | ""        | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | null   | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | null      | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | "climate" | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | ""     | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | ""        | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST | "name" | "climate" | ""        | Mock(PlanetResponse)
+        HttpStatus.OK          | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+    }
+
+    @Unroll
+    def "DELETE - [/planets/id]"(){
+        given:
+        planetService.deletePlanet(_ as String) >> deletePlanet
+        when:
+        def response = mockMvc.perform(delete("/planets/" + _ as String)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+        ).andReturn().response
+
+        then:
+        response.status == status.value()
+
+        where:
+        status              | deletePlanet
+        HttpStatus.OK       | null
     }
 
 //    @Unroll
