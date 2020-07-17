@@ -1,15 +1,11 @@
 package com.empresa.starwars.service;
 
 import com.empresa.starwars.configuration.exceptions.GenericApiException;
-import com.empresa.starwars.domain.Planet;
-import com.empresa.starwars.domain.PlanetDTO;
-import com.empresa.starwars.domain.SwapiResponse;
+import com.empresa.starwars.domain.*;
+import com.empresa.starwars.repository.PlanetCache;
 import com.empresa.starwars.repository.PlanetRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,17 +23,18 @@ public class PlanetService {
     private final PlanetRepository planetRepository;
     private final SwapiService swapiService;
     private final Validation validation;
+    private final PlanetCache planetCache;
     //endregion
 
     //region Public Methods
-    public PlanetDTO savePlanet(PlanetDTO planetDTO){
+    public PlanetResponse savePlanet(PlanetRequest request){
         try{
-            checkPlanetName(planetDTO.getName(), true);
-            checkPlanetExistence(planetDTO);
-            Planet planet = convertPlanetDTOToPlanet(planetDTO);
+            checkPlanetName(request.getName(), false);
+            checkPlanetExistence(request);
+            Planet planet = convertPlanetRequestToPlanet(request);
             planetRepository.save(planet);
-            planetDTO = convertPlanetToPlanetDTO(planet);
-            return planetDTO;
+            PlanetResponse response = convertPlanetToPlanetResponse(planet);
+            return response;
         }
         catch (GenericApiException ex){
             throw ex;
@@ -51,17 +48,17 @@ public class PlanetService {
         }
     }
 
-    public List<PlanetDTO> findAll(){
+    public List<PlanetResponse> findAll(){
         try {
-            List<PlanetDTO> planetsDTO = new ArrayList<PlanetDTO>();
+            List<PlanetResponse> responses = new ArrayList<PlanetResponse>();
             List<Planet> planets = planetRepository.findAll();
             for(Planet planet: planets){
-                PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
-                SwapiResponse response = checkGetValidation(planetDTO);
-                planetDTO.setCountFilmsAppearances(response.getResults().get(0).getFilms().size());
-                planetsDTO.add(planetDTO);
+                PlanetResponse response = convertPlanetToPlanetResponse(planet);
+                SwapiResponse swapiResponse = checkGetValidation(response);
+                response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+                responses.add(response);
             }
-            return planetsDTO;
+            return responses;
         }
         catch (GenericApiException ex){
             throw ex;
@@ -75,15 +72,14 @@ public class PlanetService {
         }
     }
 
-    @Cacheable(value = "planetDTO", key = "#id", unless = "#result == null")
-    public PlanetDTO findById(String id){
+    public PlanetResponse findById(String id){
         try{
             checkPlanetId(id);
-            Planet planet = planetRepository.findById(id).get();
-            PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
-            SwapiResponse response = checkGetValidation(planetDTO);
-            planetDTO.setCountFilmsAppearances(response.getResults().get(0).getFilms().size());
-            return planetDTO;
+            Planet planet = planetCache.findById(id);
+            PlanetResponse response = convertPlanetToPlanetResponse(planet);
+            SwapiResponse swapiResponse = checkGetValidation(response);
+            response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+            return response;
         }
         catch (GenericApiException ex){
             throw ex;
@@ -97,15 +93,14 @@ public class PlanetService {
         }
     }
 
-    @Cacheable(value = "planetDTO", key = "#name", unless = "#result == null")
-    public PlanetDTO findByName(String name){
+    public PlanetResponse findByName(String name){
         try{
-            checkPlanetName(name, false);
-            Planet planet = planetRepository.findByName(name);
-            PlanetDTO planetDTO = convertPlanetToPlanetDTO(planet);
-            SwapiResponse response = checkGetValidation(planetDTO);
-            planetDTO.setCountFilmsAppearances(response.getResults().get(0).getFilms().size());
-            return planetDTO;
+            checkPlanetName(name, true);
+            Planet planet = planetCache.findByName(name);
+            PlanetResponse response = convertPlanetToPlanetResponse(planet);
+            SwapiResponse swapiResponse = checkGetValidation(response);
+            response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+            return response;
         }
         catch (GenericApiException ex){
             throw ex;
@@ -119,16 +114,16 @@ public class PlanetService {
         }
     }
 
-    @CachePut(value = "planetDTO", key = "#id")
-    public PlanetDTO updatePlanet(String id, PlanetDTO planetDTO){
+    public PlanetResponse updatePlanet(String id, PlanetRequest request){
         try{
+            checkPlanetNameAndId(request.getName(), id);
             checkPlanetId(id);
-            checkPlanetExistence(planetDTO);
-            Planet planet = convertPlanetDTOToPlanet(planetDTO);
+            checkPlanetExistence(request);
+            Planet planet = convertPlanetRequestToPlanet(request);
             planet.setId(id);
             planetRepository.save(planet);
-            planetDTO = convertPlanetToPlanetDTO(planet);
-            return planetDTO;
+            PlanetResponse response = convertPlanetToPlanetResponse(planet);
+            return response;
         }
         catch (GenericApiException ex){
             throw ex;
@@ -142,7 +137,6 @@ public class PlanetService {
         }
     }
 
-    @CacheEvict(value = "planetDTO", key = "#id")
     public void deletePlanet(String id){
         try{
             checkPlanetId(id);
@@ -165,9 +159,9 @@ public class PlanetService {
     //region Private Methods
 
     //region Mapping
-    private PlanetDTO convertPlanetToPlanetDTO(Planet planet){
+    private PlanetResponse convertPlanetToPlanetResponse(Planet planet){
 
-        return PlanetDTO.builder()
+        return PlanetResponse.builder()
                 .id(planet.getId())
                 .name(planet.getName())
                 .climate(planet.getClimate())
@@ -175,22 +169,22 @@ public class PlanetService {
                 .build();
     }
 
-    private Planet convertPlanetDTOToPlanet(PlanetDTO planetDTO){
+    private Planet convertPlanetRequestToPlanet(PlanetRequest request){
 
         return Planet.builder()
-                .name(planetDTO.getName())
-                .climate(planetDTO.getClimate())
-                .terrain(planetDTO.getTerrain())
+                .name(request.getName())
+                .climate(request.getClimate())
+                .terrain(request.getTerrain())
                 .build();
     }
     //endregion
 
     //region Validation
 
-    private void checkPlanetExistence(PlanetDTO planetDTO){
+    private void checkPlanetExistence(PlanetRequest request){
         try{
-            SwapiResponse response = swapiService.getPlanets(planetDTO.getName());
-            validation.checkPlanetExistence(response, planetDTO);
+            SwapiResponse swapiResponse = swapiService.getPlanets(request.getName());
+            validation.checkSwapiPlanetExistence(swapiResponse, request);
         }
         catch (GenericApiException ex){
             throw ex;
@@ -200,6 +194,23 @@ public class PlanetService {
                     .code(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                     .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
                     .message("Error saving planets")
+                    .build();
+        }
+    }
+
+    private void checkPlanetNameAndId(String name, String id){
+        try {
+            Planet planet = planetRepository.findByName(name);
+            validation.checkPlanetNameAndId(planet, id);
+        }
+        catch (GenericApiException ex){
+            throw ex;
+        }
+        catch (Exception ex){
+            throw GenericApiException.builder()
+                    .code(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Error updating planets")
                     .build();
         }
     }
@@ -221,10 +232,10 @@ public class PlanetService {
         }
     }
 
-    private void checkPlanetName(String name, boolean isPost){
+    private void checkPlanetName(String name, boolean isGet){
         try {
             Planet planet = planetRepository.findByName(name);
-            validation.checkPlanetName(planet, isPost);
+            validation.checkPlanetName(planet, isGet);
         }
         catch (GenericApiException ex){
             throw ex;
@@ -238,11 +249,11 @@ public class PlanetService {
         }
     }
 
-    private SwapiResponse checkGetValidation(PlanetDTO planetDTO){
+    private SwapiResponse checkGetValidation(PlanetResponse response){
         try {
-            SwapiResponse response = swapiService.getPlanets(planetDTO.getName());
-            validation.checkGetValidation(response);
-            return response;
+            SwapiResponse swapiResponse = swapiService.getPlanets(response.getName());
+            validation.checkGetValidation(swapiResponse);
+            return swapiResponse;
         }
         catch (GenericApiException ex){
             throw ex;

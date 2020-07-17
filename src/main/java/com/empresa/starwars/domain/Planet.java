@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Builder
 
 @Document(collection = "planets")
-public class Planet {
+public class Planet implements Serializable {
 
     @Id
     private String id;

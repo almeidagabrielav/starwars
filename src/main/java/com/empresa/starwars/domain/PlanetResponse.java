@@ -3,16 +3,14 @@ package com.empresa.starwars.domain;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 
 @Data
 @Builder
-public class PlanetDTO implements Serializable {
+public class PlanetResponse {
 
     private String id;
     private String name;
     private String climate;
     private String terrain;
     private Integer countFilmsAppearances;
-
 }
