@@ -43,6 +43,7 @@ class PlanetControllerTest extends Specification {
         status                           | findAllMock
         HttpStatus.NOT_FOUND             | null
         HttpStatus.OK                    | new ArrayList<PlanetResponse>(Arrays.asList(Mock(PlanetResponse)))
+        HttpStatus.INTERNAL_SERVER_ERROR | Exception
 
     }
 
@@ -63,6 +64,7 @@ class PlanetControllerTest extends Specification {
         status                           | findByIdMock
         HttpStatus.NOT_FOUND             | null
         HttpStatus.OK                    | Mock(PlanetResponse)
+        HttpStatus.INTERNAL_SERVER_ERROR | Exception
 
     }
 
@@ -83,6 +85,7 @@ class PlanetControllerTest extends Specification {
         status                           | findByNameMock
         HttpStatus.NOT_FOUND             | null
         HttpStatus.OK                    | Mock(PlanetResponse)
+        HttpStatus.INTERNAL_SERVER_ERROR | Exception
 
     }
 
@@ -110,16 +113,17 @@ class PlanetControllerTest extends Specification {
         response.status == status.value()
 
         where:
-        status                 | name   | climate   | terrain   | savePlanet
-        HttpStatus.BAD_REQUEST | null   | null      | null      | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | ""     | ""        | ""        | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | null   | "climate" | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | null      | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | "climate" | null      | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | ""     | "climate" | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | ""        | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | "climate" | ""        | Mock(PlanetResponse)
-        HttpStatus.CREATED     | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+        status                               | name   | climate   | terrain   | savePlanet
+        HttpStatus.BAD_REQUEST               | null   | null      | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | ""     | ""        | ""        | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | null   | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | null      | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | "climate" | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | ""     | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | ""        | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | "climate" | ""        | Mock(PlanetResponse)
+        HttpStatus.CREATED                   | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.INTERNAL_SERVER_ERROR     | "name" | "climate" | "terrain" | Exception
     }
 
     @Unroll
@@ -146,16 +150,17 @@ class PlanetControllerTest extends Specification {
         response.status == status.value()
 
         where:
-        status                 | name   | climate   | terrain   | updatePlanet
-        HttpStatus.BAD_REQUEST | null   | null      | null      | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | ""     | ""        | ""        | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | null   | "climate" | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | null      | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | "climate" | null      | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | ""     | "climate" | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | ""        | "terrain" | Mock(PlanetResponse)
-        HttpStatus.BAD_REQUEST | "name" | "climate" | ""        | Mock(PlanetResponse)
-        HttpStatus.OK          | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+        status                               | name   | climate   | terrain   | updatePlanet
+        HttpStatus.BAD_REQUEST               | null   | null      | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | ""     | ""        | ""        | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | null   | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | null      | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | "climate" | null      | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | ""     | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | ""        | "terrain" | Mock(PlanetResponse)
+        HttpStatus.BAD_REQUEST               | "name" | "climate" | ""        | Mock(PlanetResponse)
+        HttpStatus.OK                        | "name" | "climate" | "terrain" | Mock(PlanetResponse)
+        HttpStatus.INTERNAL_SERVER_ERROR     | "name" | "climate" | "terrain" | Exception
     }
 
     @Unroll
@@ -171,22 +176,9 @@ class PlanetControllerTest extends Specification {
         response.status == status.value()
 
         where:
-        status              | deletePlanet
-        HttpStatus.OK       | null
+        status                           | deletePlanet
+        HttpStatus.OK                    | null
+        HttpStatus.INTERNAL_SERVER_ERROR | Exception
     }
-    //endregion
-
-    //region Exceptions Test
-//    @Unroll
-//    def "GET - [/planets] - Exception"(){
-//        when:
-//            def response = mockMvc.perform(get("/planets")
-//                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-//            ).andReturn().response
-//
-//        then:
-//            response.status == HttpStatus.INTERNAL_SERVER_ERROR
-//            thrown Exception
-//    }
     //endregion
 }

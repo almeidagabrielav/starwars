@@ -48,6 +48,10 @@ public class PlanetController {
             log.error("Error getting planets ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
+        catch (Exception ex){
+            log.error("Error getting planets ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
     }
 
@@ -70,6 +74,10 @@ public class PlanetController {
             log.error("Error getting planets by id ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
+        catch (Exception ex){
+            log.error("Error getting planets by id ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @ApiOperation(value = "Busca um planeta pelo nome")
@@ -90,6 +98,10 @@ public class PlanetController {
         catch (GenericApiException ex){
             log.error("Error getting planets by name ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
+        catch (Exception ex){
+            log.error("Error getting planets by name ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
     }
@@ -112,6 +124,10 @@ public class PlanetController {
             log.error("Error saving planet ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
+        catch (Exception ex){
+            log.error("Error saving planet ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
     }
 
@@ -133,6 +149,10 @@ public class PlanetController {
             log.error("Error updating planet ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
         }
+        catch (Exception ex){
+            log.error("Error updating planet ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @ApiOperation(value = "Deleta um planeta pelo seu id")
@@ -149,6 +169,10 @@ public class PlanetController {
         catch (GenericApiException ex){
             log.error("Error deleting planet ", ex);
             return ResponseEntity.status(ex.getStatusCode()).body(new ApiError(ex));
+        }
+        catch (Exception ex){
+            log.error("Error deleting planet ", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     //endregion
