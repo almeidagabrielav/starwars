@@ -5,16 +5,12 @@ import com.empresa.starwars.configuration.exceptions.GenericApiException
 import com.empresa.starwars.domain.Planet
 import com.empresa.starwars.domain.PlanetRequest
 import com.empresa.starwars.domain.PlanetResponse
-import com.empresa.starwars.domain.PlanetSwapiResponse
 import com.empresa.starwars.domain.SwapiResponse
 import com.empresa.starwars.repository.PlanetCache
 import com.empresa.starwars.repository.PlanetRepository
 import com.empresa.starwars.repository.SwapiCache
 import org.springframework.http.HttpStatus
-import spock.lang.Shared
 import spock.lang.Unroll
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 
 class PlanetServiceTest extends spock.lang.Specification {
 

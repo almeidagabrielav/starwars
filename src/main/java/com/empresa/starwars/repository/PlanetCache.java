@@ -4,8 +4,6 @@ import com.empresa.starwars.configuration.exceptions.GenericApiException;
 import com.empresa.starwars.domain.Planet;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
