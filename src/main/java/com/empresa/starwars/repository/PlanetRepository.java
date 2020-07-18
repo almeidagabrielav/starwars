@@ -8,4 +8,5 @@ import org.springframework.stereotype.Component;
 public interface PlanetRepository extends MongoRepository<Planet, String> {
 
     Planet findByName(final String name);
+
 }

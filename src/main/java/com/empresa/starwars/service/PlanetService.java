@@ -29,10 +29,10 @@ public class PlanetService {
     //region Public Methods
     public PlanetResponse savePlanet(PlanetRequest request){
         try{
-            checkPlanetName(request.getName(), false);
-            checkPlanetExistence(request);
+            checkPlanetName(request.getName(), false); //mock
+            checkPlanetExistence(request); //mock
             Planet planet = convertPlanetRequestToPlanet(request);
-            planetRepository.save(planet);
+            planetRepository.save(planet); //mock
             PlanetResponse response = convertPlanetToPlanetResponse(planet);
             return response;
         }

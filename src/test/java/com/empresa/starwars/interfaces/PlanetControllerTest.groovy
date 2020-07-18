@@ -2,11 +2,9 @@ package com.empresa.starwars.interfaces
 
 import com.empresa.starwars.domain.PlanetRequest
 import com.empresa.starwars.domain.PlanetResponse
-import com.empresa.starwars.interfaces.PlanetController
 import com.empresa.starwars.service.PlanetService
 import com.empresa.starwars.util.IntegrationTestUtil
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import spock.lang.Specification
 import spock.lang.Unroll
 
