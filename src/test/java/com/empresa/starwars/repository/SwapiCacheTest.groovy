@@ -1,18 +1,16 @@
-package com.empresa.starwars.service
+package com.empresa.starwars.repository
 
 import com.empresa.starwars.clients.StarWarsClient
 import com.empresa.starwars.domain.PlanetSwapiResponse
 import com.empresa.starwars.domain.SwapiResponse
-import com.empresa.starwars.repository.SwapiCache
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class SwapiServiceTest extends Specification {
+class SwapiCacheTest extends Specification {
 
     //region Properties
     StarWarsClient starWarsClient = Mock()
-    SwapiCache swapiCache = Mock()
-    def swapiService = new SwapiService(swapiCache)
+    def swapiCache = new SwapiCache(starWarsClient)
     //endregion
 
     //region Setup
@@ -51,8 +49,7 @@ class SwapiServiceTest extends Specification {
 
         when:
         starWarsClient.getPlanets(planet) >> swapiResponseMock
-        swapiCache.getPlanets(planet) >> swapiResponseMock
-        def swapiResponse = swapiService.getPlanets(planet)
+        def swapiResponse = swapiCache.getPlanets(planet)
 
         then:
         swapiResponse == swapiResponseExpected

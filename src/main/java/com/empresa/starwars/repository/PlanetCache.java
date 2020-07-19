@@ -1,11 +1,9 @@
 package com.empresa.starwars.repository;
 
-import com.empresa.starwars.configuration.exceptions.GenericApiException;
 import com.empresa.starwars.domain.Planet;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,11 +34,7 @@ public class PlanetCache {
             return planet;
         }
         catch (Exception ex){
-            throw GenericApiException.builder()
-                    .code(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .message("Error getting planets by name")
-                    .build();
+            throw ex;
         }
     }
     //endregion

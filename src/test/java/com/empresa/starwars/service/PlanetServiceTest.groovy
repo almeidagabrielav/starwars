@@ -1,28 +1,55 @@
 package com.empresa.starwars.service
 
-import com.empresa.starwars.clients.StarWarsClient
 import com.empresa.starwars.configuration.exceptions.GenericApiException
 import com.empresa.starwars.domain.Planet
 import com.empresa.starwars.domain.PlanetRequest
 import com.empresa.starwars.domain.PlanetResponse
+import com.empresa.starwars.domain.PlanetSwapiResponse
 import com.empresa.starwars.domain.SwapiResponse
 import com.empresa.starwars.repository.PlanetCache
 import com.empresa.starwars.repository.PlanetRepository
-import com.empresa.starwars.repository.SwapiCache
 import org.springframework.http.HttpStatus
+import spock.lang.Specification
 import spock.lang.Unroll
 
-class PlanetServiceTest extends spock.lang.Specification {
+class PlanetServiceTest extends Specification {
 
     //region Properties
     PlanetRepository planetRepository = Mock()
-    StarWarsClient starWarsClient = Mock()
+    SwapiService swapiService = Mock()
     Validation validation = Mock()
-    def swapiCache = new SwapiCache(starWarsClient)
-    def swapiService = new SwapiService(swapiCache)
-    def planetCache = new PlanetCache(planetRepository)
+    PlanetCache planetCache = Mock()
     def planetService = new PlanetService(planetRepository, swapiService, validation, planetCache)
 
+    //endregion
+
+    //region Setup
+    Optional<Planet> optionalPlanetTestMock
+    Planet planetTestMock
+    ArrayList<Planet> planetsTestsMock;
+    PlanetSwapiResponse planetSwapiResponseMock;
+
+    def setup(){
+        optionalPlanetTestMock = new Optional<Planet>();
+
+        planetTestMock = Planet.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .build()
+        planetsTestsMock = new ArrayList<>()
+        planetsTestsMock.add(planetTestMock)
+
+        def films = new ArrayList<String>()
+        films.add("film")
+        planetSwapiResponseMock = PlanetSwapiResponse.builder()
+                .name("name")
+                .terrain("terrain")
+                .climate("climate")
+                .films(films)
+                .build()
+    }
     //endregion
 
     //region Public Methods Tests
@@ -46,6 +73,9 @@ class PlanetServiceTest extends spock.lang.Specification {
 
 
         when:
+        planetRepository.findByName( _ as  String) >> Mock(Planet)
+        validation.checkPlanetName(_ as Planet, _ as Boolean) >> null
+        swapiService.getPlanets(_ as String) >> Mock(SwapiResponse)
         def planetResponse = planetService.savePlanet(planetRequest)
 
         then:
@@ -166,37 +196,61 @@ class PlanetServiceTest extends spock.lang.Specification {
         ex.statusCode == codeExpected
 
         where:
-        codeExpected                     | messageExpected           | idMock
-        HttpStatus.INTERNAL_SERVER_ERROR | "Error deleting planets"  | 1
+        codeExpected                     | messageExpected                | idMock
+        HttpStatus.INTERNAL_SERVER_ERROR | "Error deleting planets"       | null
 
+    }
+
+    @Unroll
+    def "findAll()- Success - ListEmpty"() {
+        when:
+        planetRepository.findAll() >> new ArrayList<Planet>()
+        def planetResponse = planetService.findAll()
+
+        then:
+        Objects.nonNull(planetResponse)
     }
 
     @Unroll
     def "findAll() - Success"() {
         given:
-        planetRepository.findAll() >> planetsMock
-        planetService.checkGetValidation(Mock(PlanetResponse)) >> swapiResponseMock
-        //swapiService.getPlanets(_ as String) >> swapiResponseMock
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+
+        def swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+
+        def planetResponseExpected = PlanetResponse.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .countFilmsAppearances(1)
+                .build()
+
+        def planetsExpected = new ArrayList<PlanetResponse>()
+        planetsExpected.add(planetResponseExpected)
 
         when:
-        def listplanetResponse = planetService.findAll()
+        planetRepository.findAll() >> planetsTestsMock
+        swapiService.getPlanets(_ as String) >> swapiResponseMock
+        validation.checkGetValidation(_ as SwapiResponse) >> null
+        def planetsResponse = planetService.findAll()
 
         then:
-        listplanetResponse == expected
-
-        where:
-        expected                                                                | planetsMock                                             | swapiResponseMock
-        new ArrayList<PlanetResponse>(Arrays.asList(Mock(PlanetResponse)))      | new ArrayList<Planet>(Arrays.asList(Mock(Planet)))      | Mock(SwapiResponse)
+        planetsResponse == planetsExpected
     }
 
     @Unroll
     def "findAll()  - Error"() {
-
         when:
         planetService.findAll()
 
         then:
         def ex = thrown(GenericApiException)
+
         ex.message == messageExpected
         ex.statusCode == codeExpected
 
@@ -209,20 +263,33 @@ class PlanetServiceTest extends spock.lang.Specification {
     @Unroll
     def "findById(String id) - Success"() {
         given:
-
-        planetCache.findById(id) >> planetMock
-        planetService.checkGetValidation(Mock(PlanetResponse)) >> swapiResponseMock
-        //swapiService.getPlanets(_ as String) >> swapiResponseMock
+        def id  = "id"
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+        def swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+        def planetResponseExpected = PlanetResponse.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .countFilmsAppearances(1)
+                .build()
+        def planetsExpected = new ArrayList<PlanetResponse>()
+        planetsExpected.add(planetResponseExpected)
 
         when:
+        planetRepository.findById(id) >> optionalPlanetTestMock
+        validation.checkPlanetId(_ as Optional<Planet>) >> null
+        swapiService.getPlanets(_ as String) >> swapiResponseMock
+        validation.checkGetValidation(_ as SwapiResponse) >> null
         def planetResponse = planetService.findById(id)
 
         then:
         planetResponse == planetResponseExpected
 
-        where:
-        id     | planetResponseExpected | planetMock   | swapiResponseMock
-        "id 1" | Mock(PlanetResponse)   | Mock(Planet) | Mock(SwapiResponse)
     }
 
     @Unroll
@@ -247,42 +314,53 @@ class PlanetServiceTest extends spock.lang.Specification {
     @Unroll
     def "findByName(String name) - Success"() {
         given:
-        planetCache.findByName(name) >> planetMock
-        planetService.checkGetValidation(Mock(PlanetResponse)) >> swapiResponseMock
-        //swapiService.getPlanets(_ as String) >> swapiResponseMock
+        def name = "name"
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+        def swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+        def planetResponseExpected = PlanetResponse.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .countFilmsAppearances(1)
+                .build()
+        def planetsExpected = new ArrayList<PlanetResponse>()
+        planetsExpected.add(planetResponseExpected)
 
         when:
+        planetCache.findByName(name) >> planetTestMock
+        planetRepository.findByName(name) >> planetTestMock
+        swapiService.getPlanets(_ as String) >> swapiResponseMock
+        validation.checkPlanetName(_ as Planet, _ as boolean) >> null
+        validation.checkGetValidation(_ as SwapiResponse) >> null
         def planetResponse = planetService.findByName(name)
 
         then:
         planetResponse == planetResponseExpected
 
-        where:
-        name     | planetMock   | swapiResponseMock    | planetResponseExpected
-        "name 1" | Mock(Planet) | Mock(SwapiResponse)  | Mock(PlanetResponse)
     }
 
     @Unroll
     def "findByName(String name)  - Error"() {
-        given:
-        def name = nameMock
-
         when:
-        planetService.findById(name)
+        planetService.findByName(_ as String)
 
         then:
         def ex = thrown(GenericApiException)
+
         ex.message == messageExpected
         ex.statusCode == codeExpected
 
         where:
-        codeExpected                     | messageExpected                  | nameMock
-        HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by name"  | null
-
+        codeExpected                     | messageExpected
+        HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by name"
     }
 
     //endregion
-
 
     //region Private Methods Tests
 

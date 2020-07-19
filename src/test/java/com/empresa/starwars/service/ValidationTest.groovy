@@ -3,7 +3,6 @@ package com.empresa.starwars.service
 import com.empresa.starwars.configuration.exceptions.GenericApiException
 import com.empresa.starwars.domain.Planet
 import com.empresa.starwars.domain.PlanetRequest
-import com.empresa.starwars.domain.PlanetResponse
 import com.empresa.starwars.domain.PlanetSwapiResponse
 import com.empresa.starwars.domain.SwapiResponse
 import org.springframework.http.HttpStatus
@@ -12,10 +11,46 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ValidationTest extends Specification {
+
     //region Property
     def validation = new Validation()
+    //endregion
+
+    //region Setup
+    Planet planetTestMock
+    ArrayList<Planet> planetsTestsMock
+    PlanetSwapiResponse planetSwapiResponseMock
     @Shared
-    List<PlanetSwapiResponse> listPlanetSwapiResponse = new ArrayList<>()
+    SwapiResponse swapiResponseMock
+
+    def setup(){
+
+        planetTestMock = Planet.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .build()
+        planetsTestsMock = new ArrayList<>()
+        planetsTestsMock.add(planetTestMock)
+
+        def films = new ArrayList<String>()
+        films.add("film")
+        planetSwapiResponseMock = PlanetSwapiResponse.builder()
+                .name("name")
+                .terrain("terrain")
+                .climate("climate")
+                .films(films)
+                .build()
+
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+
+        swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+    }
     //endregion
 
     //region Public Methods Test
@@ -24,29 +59,14 @@ class ValidationTest extends Specification {
     def "checkSwapiPlanetExistence(SwapiResponse response, PlanetRequest request) Success"() {
         when:
 
-        List<PlanetSwapiResponse> results = new ArrayList<>()
-
-        def planetSwapiResponse = PlanetSwapiResponse.builder()
-                .name("name 1")
-                .terrain("terrain 1")
-                .climate("climate 1")
-                .films(new ArrayList<String>(Arrays.asList(_ as String)) )
-
-        results << planetSwapiResponse
-
-        def swapiResponse = SwapiResponse.builder()
-                .results(results)
-                .count(1)
-                .build()
-
         def planetRequest = PlanetRequest.builder()
-                .name("name 1")
-                .terrain("terrain 1")
-                .climate("climate 1")
+                .name("name")
+                .terrain("terrain")
+                .climate("climate")
                 .build()
 
         then:
-        validation.checkSwapiPlanetExistence(swapiResponse, planetRequest)
+        validation.checkSwapiPlanetExistence(swapiResponseMock, planetRequest)
 
     }
 
@@ -55,14 +75,6 @@ class ValidationTest extends Specification {
         given:
         def swapiResponse = swapiResponseMock
         def planetRequest = planetRequestMock
-
-        def planetSwapiResponse = PlanetSwapiResponse.builder()
-                .name("name 1")
-                .terrain("terrain 1")
-                .climate("climate 1")
-                .films(new ArrayList<String>(Arrays.asList(_ as String)) )
-
-        listPlanetSwapiResponse << planetSwapiResponse
 
         when:
         validation.checkSwapiPlanetExistence(swapiResponse, planetRequest)
@@ -73,9 +85,9 @@ class ValidationTest extends Specification {
         ex.statusCode == codeExpected
 
         where:
-        codeExpected           | messageExpected                                                                                                | swapiResponseMock                                                         | planetRequestMock
-        HttpStatus.BAD_REQUEST | "It is not possible to register a planet with that name because it is not in the public api of Star Wars."     | null                                                                      | Mock(PlanetRequest)
-        HttpStatus.BAD_REQUEST | "It is not possible to register a planet with that name because it is not in the public api of Star Wars."     | SwapiResponse.builder().results(listPlanetSwapiResponse).count(1).build() | PlanetRequest.builder().name("nam").terrain("terrain 1").climate("climate 1").build()
+        codeExpected           | messageExpected                                                                                                | swapiResponseMock | planetRequestMock
+        HttpStatus.BAD_REQUEST | "It is not possible to register a planet with that name because it is not in the public api of Star Wars."     | null              | Mock(PlanetRequest)
+        HttpStatus.BAD_REQUEST | "It is not possible to register a planet with that name because it is not in the public api of Star Wars."     | swapiResponseMock | Mock(PlanetRequest)
     }
 
     @Unroll
@@ -174,34 +186,54 @@ class ValidationTest extends Specification {
         when:
         def swapiResponse = swapiResponseMock
         then:
-        validation.checkPlanetNameAndId(planet, id)
-        where:
-        planetMock                             | idMock
-        Planet.builder().id("id 1").build()    | "id 1"
-        Planet.builder().id("id 2").build()    | "id 2"
-        Planet.builder().id("id 3").build()    | "id 3"
+        validation.checkGetValidation(swapiResponse)
     }
 
     @Unroll
     def "checkGetValidation(SwapiResponse response) Error "() {
         given:
-        def planet = planetMock
-        def id = idMock
+        def swapiResponse = swapiResponseMockTest
         when:
-        validation.checkPlanetNameAndId(planet, id)
+        validation.checkGetValidation(swapiResponse)
         then:
         GenericApiException ex = thrown()
         ex.message == messageExpected
         ex.statusCode == codeExpected
         where:
-        codeExpected           | messageExpected                                                                | planetMock                             | idMock
-        HttpStatus.BAD_REQUEST | "There is already a registered planet with the same name with a different id." | Planet.builder().id("id 1").build()    | "id 2"
-        HttpStatus.BAD_REQUEST | "There is already a registered planet with the same name with a different id." | Planet.builder().id("id 2").build()    | "id 3"
-        HttpStatus.BAD_REQUEST | "There is already a registered planet with the same name with a different id." | Planet.builder().id("id 3").build()    | "id 4"
+        codeExpected           | messageExpected                      | swapiResponseMockTest
+        HttpStatus.BAD_REQUEST | "There is no planet with that name." | null
     }
     //endregion
 
     //region Private Methods Test
+
+    @Unroll
+    def "checkResponseSize(int size) Success"() {
+        when:
+        def size = 1
+
+        then:
+        validation.checkResponseSize(size)
+
+    }
+
+    @Unroll
+    def "checkResponseSize(int size) Error "() {
+        given:
+        def size = sizeMock
+        when:
+        validation.checkResponseSize(size)
+        then:
+        GenericApiException ex = thrown()
+        ex.message == messageExpected
+        ex.statusCode == codeExpected
+        where:
+        codeExpected           | messageExpected                                                                                                                         | sizeMock
+        HttpStatus.BAD_REQUEST | "There is no planet with the data reported."                                                                                            | 0
+        HttpStatus.BAD_REQUEST | "It was not possible to obtain the number of appearances in films because the method returned more than one result in the name search." | 2
+        HttpStatus.BAD_REQUEST | "It was not possible to obtain the number of appearances in films because the method returned more than one result in the name search." | 3
+        HttpStatus.BAD_REQUEST | "It was not possible to obtain the number of appearances in films because the method returned more than one result in the name search." | 4
+    }
 
     //endregion
 }

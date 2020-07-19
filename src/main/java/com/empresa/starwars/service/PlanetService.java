@@ -27,12 +27,13 @@ public class PlanetService {
     //endregion
 
     //region Public Methods
+    //ok
     public PlanetResponse savePlanet(PlanetRequest request){
         try{
-            checkPlanetName(request.getName(), false); //mock
-            checkPlanetExistence(request); //mock
+            checkPlanetName(request.getName(), false);
+            checkPlanetExistence(request);
             Planet planet = convertPlanetRequestToPlanet(request);
-            planetRepository.save(planet); //mock
+            planetRepository.save(planet);
             PlanetResponse response = convertPlanetToPlanetResponse(planet);
             return response;
         }
@@ -48,6 +49,7 @@ public class PlanetService {
         }
     }
 
+    //ok
     public List<PlanetResponse> findAll(){
         try {
             List<PlanetResponse> responses = new ArrayList<PlanetResponse>();
@@ -72,6 +74,7 @@ public class PlanetService {
         }
     }
 
+    //erro - verificar optional
     public PlanetResponse findById(String id){
         try{
             checkPlanetId(id);
@@ -93,6 +96,7 @@ public class PlanetService {
         }
     }
 
+    //ok
     public PlanetResponse findByName(String name){
         try{
             checkPlanetName(name, true);
@@ -114,6 +118,7 @@ public class PlanetService {
         }
     }
 
+    //ok - rever
     public PlanetResponse updatePlanet(String id, PlanetRequest request){
         try{
             checkPlanetNameAndId(request.getName(), id);

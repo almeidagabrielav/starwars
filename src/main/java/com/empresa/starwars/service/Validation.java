@@ -15,6 +15,7 @@ import java.util.Optional;
 public class Validation {
 
     //region Public Methods
+    //ok
     public void checkSwapiPlanetExistence(SwapiResponse response, PlanetRequest request){
         if(response == null){
             throw GenericApiException.builder()
@@ -34,7 +35,7 @@ public class Validation {
                     .build();
         }
     }
-
+    //optional
     public void checkPlanetId(Optional<Planet> planet){
         if(planet.isEmpty() || planet == null){
             throw GenericApiException.builder()
@@ -45,6 +46,7 @@ public class Validation {
         }
     }
 
+    //ok
     public void checkPlanetName(Planet planet, boolean isGet){
         if(planet == null && isGet){
             throw GenericApiException.builder()
@@ -63,6 +65,7 @@ public class Validation {
         }
     }
 
+    //ok
     public void checkPlanetNameAndId(Planet planet, String id){
         if(!planet.getId().equals(id)){
             throw GenericApiException.builder()
@@ -73,6 +76,7 @@ public class Validation {
         }
     }
 
+    //ok
     public void checkGetValidation(SwapiResponse response){
         if(response == null){
             throw GenericApiException.builder()
