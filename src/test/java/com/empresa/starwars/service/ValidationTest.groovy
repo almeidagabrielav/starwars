@@ -91,7 +91,7 @@ class ValidationTest extends Specification {
     }
 
     @Unroll
-    def "checkPlanetId(Optional<Planet> planet) Success"() {
+    def "checkPlanetId(Planet planet) Success"() {
         when:
         def planet = planetMock
         then:
@@ -99,7 +99,6 @@ class ValidationTest extends Specification {
         where:
         planetMock   | _
         Mock(Planet) | _
-        null         | _
     }
 
     @Unroll

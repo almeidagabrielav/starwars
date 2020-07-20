@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Builder
@@ -19,8 +21,8 @@ public class PlanetCache {
     @Cacheable(value = "planet", key = "#id", unless = "#result == null")
     public Planet findById(String id){
         try{
-            Planet planet = planetRepository.findById(id).get();
-            return planet;
+            Optional<Planet> planetOptional = planetRepository.findById(id);
+            return planetOptional.orElse(null);
         }
         catch (Exception ex){
             throw ex;

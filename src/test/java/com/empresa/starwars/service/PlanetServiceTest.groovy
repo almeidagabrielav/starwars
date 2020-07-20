@@ -128,8 +128,11 @@ class PlanetServiceTest extends Specification {
                 .countFilmsAppearances(null)
                 .build()
 
+        Planet planet = Planet.builder().build()
 
         when:
+        planetRepository.findById(_ as String) >> Optional.of(Mock(Planet))
+        validation.checkPlanetId(planet)
         def planetResponse = planetService.updatePlanet(id, planetRequest)
 
         then:
@@ -168,7 +171,10 @@ class PlanetServiceTest extends Specification {
         given:
         def id = idMock
 
+        Planet planet = Planet.builder().build()
         when:
+        planetRepository.findById(_ as String) >> Optional.of(Mock(Planet))
+        validation.checkPlanetId(planet)
         def result = planetService.deletePlanet(id)
 
         then:
@@ -186,8 +192,11 @@ class PlanetServiceTest extends Specification {
     def "deletePlanet(String id)  - Error"() {
         given:
         def id = idMock
+        Planet planet = Planet.builder().build()
 
         when:
+        planetRepository.findById(id) >> {throw  new Exception()}
+        validation.checkPlanetId(planet)
         planetService.deletePlanet(id)
 
         then:
@@ -197,7 +206,7 @@ class PlanetServiceTest extends Specification {
 
         where:
         codeExpected                     | messageExpected                | idMock
-        HttpStatus.INTERNAL_SERVER_ERROR | "Error deleting planets"       | null
+        HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by id"       | null
 
     }
 
@@ -277,6 +286,14 @@ class PlanetServiceTest extends Specification {
                 .terrain("terrain")
                 .countFilmsAppearances(1)
                 .build()
+
+        def planet = Planet.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .build()
+
         def planetsExpected = new ArrayList<PlanetResponse>()
         planetsExpected.add(planetResponseExpected)
 
@@ -285,6 +302,7 @@ class PlanetServiceTest extends Specification {
         validation.checkPlanetId(_ as Optional<Planet>) >> null
         swapiService.getPlanets(_ as String) >> swapiResponseMock
         validation.checkGetValidation(_ as SwapiResponse) >> null
+        planetCache.findById(_ as String) >> planet
         def planetResponse = planetService.findById(id)
 
         then:
@@ -478,6 +496,7 @@ class PlanetServiceTest extends Specification {
         def id = idMock
 
         when:
+        validation.checkPlanetNameAndId(null, id) >> { throw  new Exception()}
         planetService.checkPlanetNameAndId(name, id)
 
         then:
@@ -493,9 +512,11 @@ class PlanetServiceTest extends Specification {
 
     @Unroll
     def "checkPlanetId(String id) - Success"() {
+        given:
+        Planet planet = Planet.builder().build();
+        def id = "teste"
         when:
-        def id = _ as String
-
+        planetRepository.findById(id) >> Optional.of(planet)
         then:
         planetService.checkPlanetId(id)
     }
@@ -537,32 +558,55 @@ class PlanetServiceTest extends Specification {
         given:
         def name = nameMock
         def isGet = isGetMock
+
+
         when:
+        planetRepository.findAllById(name, isGet) >> null
+        validation.checkPlanetName(name, isGet) >> Exception
         planetService.checkPlanetName(name, isGet)
+
         then:
-        GenericApiException ex = thrown()
+
+        def ex = thrown(GenericApiException)
         ex.message == messageExpected
         ex.statusCode == codeExpected
         where:
         codeExpected                     | messageExpected                  | nameMock     | isGetMock
-        HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by name"  | _ as String  | false
         HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by name"  | null         | true
     }
 
     @Unroll
     def "checkGetValidation(PlanetResponse response) - Success"() {
         given:
-        def planetResponse = planetResponseMock
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+
+        def swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+
+        def swapiResponseExpected = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+
+        def planetResponseMock = PlanetResponse.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .countFilmsAppearances(1)
+                .build()
 
         when:
-        def swapiResponse = planetService.checkGetValidation(planetResponse)
+        swapiService.getPlanets(_ as String) >> swapiResponseMock
+        validation.checkGetValidation(_ as SwapiResponse) >> null
+        def swapiResponse = planetService.checkGetValidation(planetResponseMock)
 
         then:
         swapiResponse == swapiResponseExpected
 
-        where:
-        swapiResponseExpected       | planetResponseMock
-        Mock(SwapiResponse)         | Mock(PlanetResponse)
     }
 
     @Unroll

@@ -40,14 +40,15 @@ class PlanetCacheTest extends Specification {
                 .terrain("terrain")
                 .build()
 
+        def testOptional = Optional.of(planetTestMock)
+
 
         when:
-        planetRepository.findById(id).get() >> planetTestMock
+        planetRepository.findById(_ as String) >> testOptional
         def planet = planetCache.findById(id)
 
         then:
         planet == planetExpected
-
     }
 
     @Unroll
@@ -63,8 +64,15 @@ class PlanetCacheTest extends Specification {
                 .build()
 
 
+        def planetTest = Planet.builder()
+                .id("id")
+                .name("name")
+                .climate("climate")
+                .terrain("terrain")
+                .build();
+
         when:
-        planetRepository.findByName(name) >> planetTestMock
+        planetRepository.findByName(name) >> planetTest
         def planet = planetCache.findByName(name)
 
         then:

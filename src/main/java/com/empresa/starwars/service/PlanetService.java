@@ -27,7 +27,6 @@ public class PlanetService {
     //endregion
 
     //region Public Methods
-    //ok
     public PlanetResponse savePlanet(PlanetRequest request){
         try{
             checkPlanetName(request.getName(), false);
@@ -49,7 +48,6 @@ public class PlanetService {
         }
     }
 
-    //ok
     public List<PlanetResponse> findAll(){
         try {
             List<PlanetResponse> responses = new ArrayList<PlanetResponse>();
@@ -57,7 +55,7 @@ public class PlanetService {
             for(Planet planet: planets){
                 PlanetResponse response = convertPlanetToPlanetResponse(planet);
                 SwapiResponse swapiResponse = checkGetValidation(response);
-                response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+                response.setCountFilmsAppearances(countFilms(swapiResponse));
                 responses.add(response);
             }
             return responses;
@@ -74,14 +72,13 @@ public class PlanetService {
         }
     }
 
-    //erro - verificar optional
     public PlanetResponse findById(String id){
         try{
             checkPlanetId(id);
             Planet planet = planetCache.findById(id);
             PlanetResponse response = convertPlanetToPlanetResponse(planet);
             SwapiResponse swapiResponse = checkGetValidation(response);
-            response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+            response.setCountFilmsAppearances(countFilms(swapiResponse));
             return response;
         }
         catch (GenericApiException ex){
@@ -96,14 +93,13 @@ public class PlanetService {
         }
     }
 
-    //ok
     public PlanetResponse findByName(String name){
         try{
             checkPlanetName(name, true);
             Planet planet = planetCache.findByName(name);
             PlanetResponse response = convertPlanetToPlanetResponse(planet);
             SwapiResponse swapiResponse = checkGetValidation(response);
-            response.setCountFilmsAppearances(swapiResponse.getResults().get(0).getFilms().size());
+            response.setCountFilmsAppearances(countFilms(swapiResponse));
             return response;
         }
         catch (GenericApiException ex){
@@ -118,7 +114,6 @@ public class PlanetService {
         }
     }
 
-    //ok - rever
     public PlanetResponse updatePlanet(String id, PlanetRequest request){
         try{
             checkPlanetNameAndId(request.getName(), id);
@@ -222,7 +217,8 @@ public class PlanetService {
 
     private void checkPlanetId(String id){
         try {
-            Optional<Planet> planet = planetRepository.findById(id);
+            Optional<Planet> planetOptional = planetRepository.findById(id);
+            Planet planet = planetOptional.orElse(null);
             validation.checkPlanetId(planet);
         }
         catch (GenericApiException ex){
@@ -270,6 +266,27 @@ public class PlanetService {
                     .message("Error getting planets")
                     .build();
         }
+    }
+
+    private int countFilms(SwapiResponse swapiResponse){
+        int countFilms = 0;
+        try{
+            ArrayList<String> films = swapiResponse.getResults().get(0).getFilms();
+            if(films != null || films.size() > 0){
+                countFilms = films.size();
+            }
+        }
+        catch (GenericApiException ex){
+            throw ex;
+        }
+        catch (Exception ex){
+            throw GenericApiException.builder()
+                    .code(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Error counting films.")
+                    .build();
+        }
+        return countFilms;
     }
     //endregion
 

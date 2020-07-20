@@ -36,8 +36,8 @@ public class Validation {
         }
     }
     //optional
-    public void checkPlanetId(Optional<Planet> planet){
-        if(planet.isEmpty() || planet == null){
+    public void checkPlanetId(Planet planet){
+        if(planet == null){
             throw GenericApiException.builder()
                     .code(Integer.toString(HttpStatus.BAD_REQUEST.value()))
                     .statusCode(HttpStatus.BAD_REQUEST)
