@@ -11,7 +11,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="starwars" target="11" />
+      <module name="starwars" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
