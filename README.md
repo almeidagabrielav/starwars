@@ -84,7 +84,7 @@ Com o intuito de facilitar o rastreamento das chamadas da API, incluindo o tempo
 ## Testes
 
 ### Testes Unitários
-Foram escritos 100 testes unitários para a aplicação, para a escrita dos mesmos foi escolhido o framework Spock, as classes com testes escritos foram: PlanetController, PlanetCache, SwapiCache, PlanetService, SwapiService e Validation. Após a execução dos 100 testes, todos apresentaram êxito e foi possível obter uma cobertura relevante, como pode ser visto na imagem abaixo.
+Foram escritos 101 testes unitários para a aplicação, para a escrita dos mesmos foi escolhido o framework Spock, as classes com testes escritos foram: PlanetController, PlanetCache, SwapiCache, PlanetService, SwapiService e Validation. Após a execução dos 101 testes, todos apresentaram êxito e foi possível obter uma cobertura relevante, como pode ser visto na imagem abaixo.
 
 ![cobertura](images/cobertura-teste-unitario.png)
 
