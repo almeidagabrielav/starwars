@@ -42,7 +42,6 @@ class PlanetCacheTest extends Specification {
 
         def testOptional = Optional.of(planetTestMock)
 
-
         when:
         planetRepository.findById(_ as String) >> testOptional
         def planet = planetCache.findById(id)

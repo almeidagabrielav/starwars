@@ -205,7 +205,7 @@ class PlanetServiceTest extends Specification {
         ex.statusCode == codeExpected
 
         where:
-        codeExpected                     | messageExpected                | idMock
+        codeExpected                     | messageExpected                     | idMock
         HttpStatus.INTERNAL_SERVER_ERROR | "Error getting planets by id"       | null
 
     }
@@ -453,8 +453,19 @@ class PlanetServiceTest extends Specification {
 
     @Unroll
     def "checkPlanetExistence(PlanetRequest request) - Success"() {
-        when:
+        given:
         def planetRequest = Mock(PlanetRequest)
+        def resultsMock = new ArrayList()
+        resultsMock.add(planetSwapiResponseMock)
+
+        def swapiResponseMock = SwapiResponse.builder()
+                .count(1)
+                .results(resultsMock)
+                .build()
+
+        when:
+        swapiService.getPlanets(_ as String) >> swapiResponseMock
+        validation.checkSwapiPlanetExistence(_ as SwapiResponse, _ as PlanetRequest) >> null
 
         then:
         planetService.checkPlanetExistence(planetRequest)
@@ -481,12 +492,22 @@ class PlanetServiceTest extends Specification {
 
     @Unroll
     def "checkPlanetNameAndId(String name, String id) - Success"() {
+        given:
+        def name = nameMock
+        def id =idMock
+
         when:
-        def name = _ as String
-        def id = _ as String
+        planetRepository.findByName(_ as String) >> Mock(Planet)
+        validation.checkPlanetName(_ as Planet, _ as String) >> null
 
         then:
         planetService.checkPlanetNameAndId(name, id)
+
+        where:
+        nameMock | idMock
+        "name 1" | "id 1"
+        "name 2" | "id 2"
+        "name 3" | "id 3"
     }
 
     @Unroll
@@ -542,11 +563,17 @@ class PlanetServiceTest extends Specification {
 
     @Unroll
     def "checkPlanetName(Planet planet, boolean isGet) Success"() {
-        when:
+        given:
         def name = nameMock
         def isGet = isGetMock
+
+        when:
+        planetRepository.findByName(_ as String) >> Mock(Planet)
+        validation.checkPlanetName(_ as Planet, _ as boolean) >> null
+
         then:
         planetService.checkPlanetName(name, isGet)
+
         where:
         nameMock     | isGetMock
         _ as String  | true

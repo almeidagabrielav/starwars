@@ -58,7 +58,6 @@ class ValidationTest extends Specification {
     @Unroll
     def "checkSwapiPlanetExistence(SwapiResponse response, PlanetRequest request) Success"() {
         when:
-
         def planetRequest = PlanetRequest.builder()
                 .name("name")
                 .terrain("terrain")
@@ -102,20 +101,21 @@ class ValidationTest extends Specification {
     }
 
     @Unroll
-    def "checkPlanetId(Optional<Planet> planet) Error "() {
+    def "checkPlanetId(Planet planet) Error "() {
         given:
         def planet = planetMock
-        def isGet = isGetMock
+
         when:
-        validation.checkPlanetName(planet, isGet)
+        validation.checkPlanetId(planet)
+
         then:
         GenericApiException ex = thrown()
         ex.message == messageExpected
         ex.statusCode == codeExpected
+
         where:
-        codeExpected           | messageExpected                                            | planetMock   | isGetMock
-        HttpStatus.BAD_REQUEST | "There is already a registered planet with the same name." | Mock(Planet) | false
-        HttpStatus.BAD_REQUEST | "There is no planet with that name."                       | null         | true
+        codeExpected           | messageExpected                    | planetMock
+        HttpStatus.BAD_REQUEST | "There is no planet with that id." | null
     }
 
     @Unroll
